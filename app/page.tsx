@@ -1,113 +1,163 @@
-import Image from 'next/image'
+// @ts-nocheck
+"use client";
+import { useState, useEffect, useRef } from 'react';
 
-export default function Home() {
+export default function HomePage() {
+  const [threads, setThreads] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState('patient');
+  const [isChatBoxVisible, setIsChatBoxVisible] = useState(false);
+
+  const addMessage = () => {
+    const updatedThreads = [...threads, { user: currentUser, message: newMessage }];
+    setThreads(updatedThreads);
+    setNewMessage('');
+  };
+
+  const toggleChatBox = (e) => {
+    e.preventDefault();
+    setIsChatBoxVisible((prevVisibility) => !prevVisibility);
+  };
+
+  const switchToDoctor = () => {
+    setCurrentUser('doctor');
+  };
+
+  const switchToPatient = () => {
+    setCurrentUser('patient');
+  };
+
+  const getAvatar = (user) => {
+    return user === 'patient' ? '/patient-avatar.png' : '/doctor-avatar.png';
+  };
+
+  const getRoleName = () => {
+    return currentUser === 'patient' ? 'Patient' : 'Doctor';
+  };
+
+  const messagesContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [threads]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b relative">
+      <title>livewell</title>
+      <div className="fixed left-4 top-4 flex flex-col space-y-2">
+        <button
+          className={`p-2 rounded-full ${currentUser === 'doctor' ? 'bg-indigo-500 text-white' : 'bg-gray-200'}`}
+          onClick={switchToDoctor}
+        >
+          I am a Doctor
+        </button>
+        <button
+          className={`p-2 rounded-full ${currentUser === 'patient' ? 'bg-indigo-500 text-white' : 'bg-gray-200'}`}
+          onClick={switchToPatient}
+        >
+          I am a Patient
+        </button>
+      </div>
+
+      {isChatBoxVisible && (
+        <div className="fixed bottom-4 right-4 bg-white p-4 border border-gray-300 rounded shadow-md z-10 max-w-sm">
+          <div className="flex items-center justify-between border-b p-2">
+            <div className="flex items-center">
+              <img
+                className="rounded-full w-10 h-10 ml-1"
+                src={getAvatar(currentUser)}
+                alt={`${currentUser} Avatar`}
+              />
+              <div className="pl-2">
+                <div className="font-semibold">
+                  <a className="hover:underline" href="#">
+                    {getRoleName()}
+                  </a>
+                </div>
+                <div className="text-xs text-gray-600">Online</div>
+              </div>
+            </div>
+
+          </div>
+          <div ref={messagesContainerRef} className="flex flex-col" style={{ minHeight: '200px', maxHeight: '400px', overflowY: 'auto' }}>
+            {threads.map((thread, index) => (
+              <div
+                key={index}
+                className={`flex items-center mb-6 ${thread.user === 'patient' ? 'flex-row-reverse' : 'flex-row'
+                  }`}
+              >
+                <div className="flex-none flex flex-col items-center space-y-2 ml-4">
+                  <img
+                    className="rounded-full w-12 h-12"
+                    src={getAvatar(thread.user)}
+                    alt={`${thread.user} Avatar`}
+                  />
+                  <a href="#" className="block text-sm font-medium hover:underline">
+                    {thread.user === 'patient' ? 'patient' : 'doctor'}
+                  </a>
+                </div>
+                <div
+                  className={`flex-1 ${thread.user === 'patient' ? 'bg-green-100 text-gray-800' : 'bg-gray-200 text-black'
+                    } p-4 rounded-lg mb-4`}
+                >
+                  <div className="text-base">{thread.message}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center border-t p-2">
+            <div>
+              <button className="inline-flex hover:bg-indigo-50 rounded-full p-2" type="button" onClick={addMessage}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+            </div>
+            <div className="w-full mx-2">
+              <input
+                className="w-full rounded-full border border-gray-200 p-2"
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Aa"
+                autoFocus
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+      <div className="fixed bottom-4 right-4 z-20 flex flex-col space-y-2">
+        <div
+          onClick={toggleChatBox}
+          className={`intercom-lightweight-app-launcher-icon intercom-lightweight-app-launcher-icon-open ${isChatBoxVisible ? 'hidden' : 'block'
+            }`}
+          style={{ transition: 'transform 0.3s ease-in-out', transform: 'scale(0.8)' }}
+          onMouseEnter={() =>
+            (document.querySelector('.intercom-lightweight-app-launcher-icon-open') as HTMLElement).style.transform =
+            'scale(1)'
+          }
+          onMouseLeave={() =>
+            (document.querySelector('.intercom-lightweight-app-launcher-icon-open') as HTMLElement).style.transform =
+            'scale(0.3)'
+          }
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 32">
+            <path
+              d="M28 32s-4.714-1.855-8.527-3.34H3.437C1.54 28.66 0 27.026 0 25.013V3.644C0 1.633 1.54 0 3.437 0h21.125c1.898 0 3.437 1.632 3.437 3.645v18.404H28V32zm-4.139-11.982a.88.88 0 00-1.292-.105c-.03.026-3.015 2.681-8.57 2.681-5.486 0-8.517-2.636-8.571-2.684a.88.88 0 00-1.29.107 1.01 1.01 0 00-.219.708.992.992 0 00.318.664c.142.128 3.537 3.15 9.762 3.15 6.226 0 9.621-3.022 9.763-3.15a.992.992 0 00.317-.664 1.01 1.01 0 00-.218-.707z"
+            ></path>
+          </svg>
+        </div>
+        <text className=" text-white p-2 rounded focus:outline-none">chat here</text>
       </div>
     </main>
-  )
+  );
 }
